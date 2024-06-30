@@ -68,8 +68,8 @@ except:
 
 time.sleep(2)
 
-Aranan = "EbuCehilTutuklansın"
-Arama = f"https://x.com/search?q=%23{Aranan}&src=typed_query&f=live"
+Aranan = "Cinsel Eşitlik Bakanlığı"
+Arama = f"https://x.com/search?q={Aranan}&src=typed_query"
 driver.get(Arama)
 
 time.sleep(3)
@@ -82,7 +82,7 @@ for i in Profil:
     Bilgi.append(i.text)
 
 #Hashtag yapısında, sürekli binlerce tweet geldiği için, kaç tane bilgi istiyorsam ona göre döngü yapacağım. Sınırım o olmalı.
-TweetSayisi = 5
+TweetSayisi = 3
 
 #Scrollbar ile hareket ederken ki yeni gelen verilerin çekilmesi.
 while True:
@@ -95,28 +95,107 @@ while True:
             Bilgi.append(x)
     if len(Bilgi) >= TweetSayisi: # Divler 50'yi görmeden 50 üstünede çıkabilir. Ondan >= yapmak durumundayız.
         break
+    wait.until(EC.presence_of_all_elements_located((By.XPATH, './/div[@class="css-175oi2r r-1iusvr4 r-16y2uox r-1777fci r-kzbkwu"]')))
     # Tüm Bilgileri, Bilgi'ye atadık.
 # Her \n bir liste indeksi olacak gibi düşünebiliriz.
 print(Bilgi)
-sayac = 0
+
 # Her tweet, Bilgi içerisinde indeksle saklanıyor. İndekslerin içerisine girerek parçalama yapmam lazım.
+sayac = 0
+
+# Tweet bilgilerini ayrıştır ve yazdır
 for k in range(0, TweetSayisi):
-    Account = (Bilgi[k].split("\n")[1]) # Kullanıcı Hesabı
-    When = (Bilgi[k].split("\n")[3]) # Ne zaman tweet atıldı
-    Tweet = (Bilgi[k].split("\n")[4]) # Tweet
-    if Bilgi[k].split("\n")[5] == " adlı kişiye yanıt olarak":
-        Tweet = (Bilgi[k].split("\n")[6])
-    Visualization = (Bilgi[k].split("\n")[-1]) # Görüntülenme
-    Like = (Bilgi[k].split("\n")[-2]) # Beğeni
-    Retweet = (Bilgi[k].split("\n")[-3]) # Yeniden Gönder
-    Comment = (Bilgi[k].split("\n")[-4]) # Yorum Sayısı
-    sayac += 1
-    print(f"{sayac} - {When} - Görüntülenme-{Visualization} - Beğeni-{Like} - Retweet Sayısı-{Retweet} - Yorum Sayısı-{Comment} - {Account}: {Tweet}")
-    
-print(type(Visualization))
-print(type(Like))
-print(type(Retweet))
-     
+    try:
+        lines = Bilgi[k].split("\n")
+        Account = lines[1]  # Kullanıcı Hesabı
+        When = lines[3]  # Ne zaman tweet atıldı
+        Tweet = lines[4]  # Tweet
+        if lines[5] == " adlı kişiye yanıt olarak":
+            Tweet = lines[6]
+
+        # Görüntülenme
+        try:
+            Visualization = lines[-1].split(" ")
+            if len(Visualization) > 1:
+                if Visualization[1] == "B":
+                    Visualization = int(Visualization[0] + "000")
+                elif Visualization[1] == "Mn":
+                    Visualization = int(Visualization[0] + "000000")
+                else:
+                    Visualization = int(Visualization[0])
+            else:
+                Visualization = int(Visualization[0])
+        except IndexError as e:
+            print(f"IndexError: {e}")
+            Visualization = 0
+        except ValueError as e:
+            print(f"ValueError: {e}")
+            Visualization = 0
+
+        # Beğeni
+        try:
+            Like = lines[-2].split(" ")
+            if len(Like) > 1:
+                if Like[1] == "B":
+                    Like = int(Like[0] + "000")
+                elif Like[1] == "Mn":
+                    Like = int(Like[0] + "000000")
+                else:
+                    Like = int(Like[0])
+            else:
+                Like = int(Like[0])
+        except IndexError as e:
+            print(f"IndexError: {e}")
+            Like = 0
+        except ValueError as e:
+            print(f"ValueError: {e}")
+            Like = 0
+
+        # Retweet
+        try:
+            Retweet = lines[-3].split(" ")
+            if len(Retweet) > 1:
+                if Retweet[1] == "B":
+                    Retweet = int(Retweet[0] + "000")
+                elif Retweet[1] == "Mn":
+                    Retweet = int(Retweet[0] + "000000")
+                else:
+                    Retweet = int(Retweet[0])
+            else:
+                Retweet = int(Retweet[0])
+        except IndexError as e:
+            print(f"IndexError: {e}")
+            Retweet = 0
+        except ValueError as e:
+            print(f"ValueError: {e}")
+            Retweet = 0
+
+        # Yorum
+        try:
+            Comment = lines[-4].split(" ")
+            if len(Comment) > 1:
+                if Comment[1] == "B":
+                    Comment = int(Comment[0] + "000")
+                elif Comment[1] == "Mn":
+                    Comment = int(Comment[0] + "000000")
+                else:
+                    Comment = int(Comment[0])
+            else:
+                Comment = int(Comment[0])
+        except IndexError as e:
+            print(f"IndexError: {e}")
+            Comment = 0
+        except ValueError as e:
+            print(f"ValueError: {e}")
+            Comment = 0
+
+        sayac += 1
+        print(f"{sayac} - {Account} - {When} / Görüntülenme: {Visualization} / Beğeni: {Like} / Retweet Sayısı: {Retweet} / Yorum Sayısı: {Comment} - Tweet: {Tweet}")
+    except IndexError:
+        # Eğer beklenen yapı bulunamazsa, hatayı görmezden gel
+        pass
+
+
 # IndexError: list index out of range 107. satır için. Try bloğuna al. Metin Dosyasında hata detayı var.
 
 # Tweet Atanlar Kaç Defa Tweet Attı.
